@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Buggy Demo Shop — Каталог (оновлена багова версія 3.2)</title>
+  <style>
+    :root{--accent:#2563eb;--accent2:#1e9b4c;--muted:#6b7280;--bg:#f7f9fc}
+    body{font-family:Inter,system-ui,Arial,sans-serif;margin:0;background:var(--bg);color:#0f172a}
+
+    header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.05);position:relative}
+    .brand{font-weight:800;font-size:22px}
+    .nav{display:flex;gap:12px;align-items:center}
+
+    .btn{background:var(--accent);color:#fff;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;transition:0.2s;display:inline-block;width:auto}
+    .btn:hover{background:#1e40af}
+
+    body.styleB .btn{background:var(--accent2);border-radius:20px}
+    body.styleB .btn:hover{background:#0f7a39}
+
+    .btn-primary-action{
+        background: #f97316;
+        font-weight: 700;
+        padding: 8px 18px;
+        font-size: 16px;
+    }
+    .btn-primary-action:hover{
+        background: #ea580c;
+    }
+    body.styleB .btn-primary-action{
+        background: #facc15;
+        color: #1f2937;
+    }
+    body.styleB .btn-primary-action:hover{
+        background: #eab308;
+    }
+
+    .hero{display:flex;gap:20px;align-items:center;margin:16px auto;max-width:1180px;background:#fff;padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(12,24,48,0.06)}
+    .hero img{width:320px;height:180px;object-fit:cover;border-radius:8px}
+
+    .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:16px auto;max-width:1180px}
+    .controls input,.controls select{padding:10px;border-radius:8px;border:1px solid #d0d7de}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin:0 auto;max-width:1180px}
+    .card{background:#fff;padding:12px;border-radius:10px;box-shadow:0 4px 12px rgba(12,24,48,0.04);display:flex;flex-direction:column;position:relative}
+    .card img{width:100%;height:160px;object-fit:cover;border-radius:8px}
+
+    .card:nth-child(3n){margin-top:30px}
+
+    .banner{grid-column:span 2;background:#e0f2fe;text-align:center;padding:20px;border-radius:10px;font-weight:700}
+
+    .pagination{display:flex;justify-content:center;gap:6px;margin:24px 0}
+    .pagination button{padding:6px 10px;border:1px solid #d0d7de;background:#fff;border-radius:6px;cursor:pointer}
+    .pagination button.active{background:var(--accent);color:#fff}
+
+    footer{text-align:center;padding:16px;margin-top:40px;color:var(--muted)}
+
+    .hidden{display:none}
+
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:1000}
+    .panel{background:#fff;padding:16px;border-radius:10px;max-width:520px;width:100%}
+
+    #cartPopover{
+      position: absolute;
+      top: 65px;
+      right: 24px;
+      width: 350px;
+      background: #fff;
+      border: 1px solid #ddd;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border-radius: 8px;
+      padding: 15px;
+      display: none;
+      z-index: 900;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .cart-item-row{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #eee;
+        padding: 8px 0;
+        gap: 10px;
+    }
+    .cart-item-row:last-child{border-bottom: none;}
+    .cart-item-row input[type="number"]{width: 50px;}
+    
+    .stars { color: gold; font-size: 1.2em; }
+    .star-rating {
+        display: inline-block;
+        font-size: 1.5em;
+        cursor: pointer;
+        user-select: none;
+    }
+    .star-rating span {
+        color: #ccc;
+        transition: color 0.2s;
+    }
+    .star-rating span.active, .star-rating:hover span {
+        color: gold;
+    }
+    .star-rating span:hover ~ span {
+        color: #ccc;
+    }
+    .star-rating:not(:hover) span.active {
+        color: gold;
+    }
+  </style>
+  <script src="products.js"></script> 
+</head>
+<body>
+
+<header>
+  <div class="brand">Buggy Demo Shop</div>
+  <div class="nav">
+    <button class="btn" onclick="toggleStyle('A')">Стиль A</button>
+    <button class="btn" onclick="toggleStyle('B')">Стиль B</button>
+    
+    <button class="btn" onclick="openReviews()">Відгуки</button>
+    <button class="btn" onclick="openAuthModal()">Авторизація</button>
+    <button class="btn" onclick="openRegModal()">Реєстрація</button>
+    
+    <button class="btn" onclick="toggleCartPopover()">Кошик (<span id="cartCount">0</span>)</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="copy">
+    <h1>Тренувальний магазин для лабораторних з тестування програмного забезпечення</h1>
+    <p style="color:var(--muted);margin-top:8px">Зверніть увагу: частина функціоналу навмисно містить помилки. Відкрийте DevTools, протестуйте мобільний вигляд і знайдіть баги.</p>
+    <div style="margin-top:12px"><button class="btn" onclick="openOrderModal()">Оформити замовлення</button></div>
+  </div>
+  <img id="heroImg" src="https://images.unsplash.com/photo-1519337265831-281ec6cc8514?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder" alt="product">
+</section>
+
+<div class="controls">
+  <input id="q" placeholder="Пошук…">
+  <select id="cat">
+    <option value="all">Усі категорії</option>
+    <option value="phones">Телефони</option>
+    <option value="laptops">Ноутбуки</option>
+    <option value="home">Дім</option>
+  </select>
+  <select id="sort">
+    <option value="none">Сортування (баг)</option>
+    <option value="price_asc">Ціна (за зростанням)</option>
+    <option value="price_desc">Ціна (за спаданням)</option>
+    <option value="name_asc">Назва (за зростанням)</option>
+    <option value="name_desc">Назва (за спаданням)</option>
+  </select>
+  <button class="btn" onclick="page=1; renderCatalog()">Показати / Фільтрувати</button>
+</div>
+
+<div class="grid" id="catalog"></div>
+<div class="pagination" id="pagination"></div>
+
+<footer>Buggy Demo Shop © 2025</footer>
+
+<div class="modal" id="itemCartModal">
+  <div class="panel">
+    <h3 id="itemCartTitle">Додати товар до Кошика</h3>
+    <div id="itemCartContent"></div>
+    <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="addItemToCart()">Підтвердити додавання</button>
+      <button class="btn" onclick="document.getElementById('itemCartModal').style.display='none'">Скасувати</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="authModal">
+  <div class="panel" style="max-width:400px">
+    <h3>Авторизація (не працює)</h3>
+    <form id="authForm">
+      <label>Email:</label>
+      <input type="email" name="email" required><br><br>
+
+      <label>Пароль:</label>
+      <input type="password" name="password" required><br><br>
+      
+      <button type="button" class="btn" onclick="alert('Вхід не реалізовано')">Увійти</button>
+    </form>
+    <button class="btn" style="margin-top: 10px;" onclick="closeAuthModal()">Закрити</button>
+  </div>
+</div>
+
+<div class="modal" id="regModal">
+  <div class="panel" style="max-width:400px">
+    <h3>Реєстрація</h3>
+    <form id="regForm">
+      <label>Ім'я:</label>
+      <input type="text" name="name" required><br><br>
+
+      <label>Прізвище:</label>
+      <input type="number" name="surname"><br><br>
+
+      <label>Email:</label>
+      <input type="email" name="email"><br><br>
+      
+      <label>Дата народження:</label>
+      <input type="date" name="dob" id="dob"><br><br>
+
+      <label>Пароль:</label>
+      <input type="password" name="password" minlength="1" required><br><br>
+
+      <label>Стать:</label><br>
+      <input type="checkbox" name="gender" value="male"> Чоловіча
+      <input type="checkbox" name="gender" value="female"> Жіноча
+      <input type="checkbox" name="gender" value="other"> Інше
+      <br><br>
+      
+      <label>Країна (Select):</label>
+      <select name="country">
+        <option>Україна</option>
+        <option>Польща</option>
+        <option>Інша</option>
+      </select><br><br>
+
+      <label>Погоджуюся з умовами:</label>
+      <input type="checkbox" name="terms" required><br><br>
+
+      <button type="button" class="btn" onclick="submitReg()">Зареєструватися</button>
+    </form>
+    <button class="btn" onclick="closeRegModal()">Закрити</button>
+  </div>
+</div>
+
+<div class="modal" id="reviewsModal">
+  <div class="panel">
+    <h3>Відгуки магазину</h3>
+    <div id="reviewsList"></div>
+    <textarea id="revText" placeholder="Ваш відгук..."></textarea><br>
+    <button class="btn" onclick="addReview()">Додати</button>
+    <button class="btn" onclick="closeReviews()">Закрити</button>
+  </div>
+</div>
+
+<div id="cartPopover">
+    <h3>Ваш Кошик</h3>
+    <div id="cartItemsList"></div>
+    <h3 id="cartTotal">Разом: 0 грн</h3>
+    <div style="margin-top:10px;text-align:right">
+        <button class="btn" onclick="submitOrder()">Оформити замовлення</button>
+    </div>
+</div>
+
+<div id="productPage" class="hidden product-page">
+  <button class="btn" onclick="closeProduct()">Назад</button>
+  <div id="productInner"></div>
+</div>
+
+
+<script>
+const ALL_PRODUCTS = PRODUCTS; 
+let page = 1;
+const perPage = 10;
+let reviews = [
+    {text: "Чудовий сайт для навчання! Баги знаходяться легко, тренування вдале."},
+    {text: "Хороший асортимент, але функціонал кошика працює дуже дивно. Те, що треба для практики."},
+    {text: "Простий та зрозумілий інтерфейс, незважаючи на 'баги'."}
+]; 
+
+let productReviews = {
+    1: [
+        {name: 'Максим', text: 'Дуже швидкий телефон, але бачу баги у кошику, що добре для тестування!', rating: 4},
+        {name: 'Анна', text: 'Камера чудова.', rating: 5}
+    ],
+    2: [
+        {name: 'Олег', text: 'Тихий і потужний, але ціна завищена.', rating: 3},
+        {name: 'Ірина', text: 'Батарея тримає вічність. 5 зірок!', rating: 5}
+    ]
+};
+let cart = []; 
+let currentProductId = null; 
+let deleteAttemptCount = 0; 
+let selectedRating = 5;
+
+function toggleStyle(t){
+  if(t === 'A') document.body.classList.remove('styleB');
+  else document.body.classList.add('styleB');
+}
+
+function setRating(rating) {
+    selectedRating = rating;
+    const stars = document.querySelectorAll('.star-rating span');
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+}
+
+function renderStars(rating) {
+    const fullStar = '★';
+    const emptyStar = '☆';
+    const maxRating = 5;
+    
+    const safeRating = Math.max(0, Math.min(maxRating, Math.round(rating)));
+    
+    return fullStar.repeat(safeRating) + emptyStar.repeat(maxRating - safeRating);
+}
+
+function getFinalPrice(product) {
+    let finalPrice = product.price;
+
+    if (product.discount > 0 && product.discount <= 100) {
+        finalPrice = product.price * (1 - product.discount / 100);
+    } else if (product.discount > 100) {
+        finalPrice = product.price - product.discount;
+    } else if (product.discount < 0) {
+        finalPrice = product.price - product.discount;
+    }
+    return Math.round(finalPrice);
+}
+
+function renderCatalog(){
+  const grid = document.getElementById('catalog');
+  grid.innerHTML = '';
+  
+  if (!ALL_PRODUCTS || ALL_PRODUCTS.length === 0) {
+      grid.innerHTML = "<h3 style='grid-column: 1 / -1; text-align: center;'>Каталог товарів не завантажено!</h3>"; 
+      document.getElementById('pagination').innerHTML = '';
+      return;
+  }
+  
+  const searchQ = document.getElementById('q').value.toLowerCase();
+  const category = document.getElementById('cat').value;
+  const sortType = document.getElementById('sort').value;
+
+  let list = [...ALL_PRODUCTS];
+
+  list = list.filter(p => {
+    const matchesCategory = category === 'all' || p.cat === category;
+    const matchesSearch = p.title.toLowerCase().includes(searchQ) || (p.desc && p.desc.toLowerCase().includes(searchQ));
+    return matchesCategory && matchesSearch;
+  });
+
+  if (sortType !== 'none') {
+    list.sort((a, b) => {
+        const sortValueA = getFinalPrice(a);
+        const sortValueB = getFinalPrice(b);
+        
+        if (sortValueA < sortValueB) return -1; 
+        if (sortValueA > sortValueB) return 1;
+        return 0;
+    });
+  }
+
+  const totalPages = Math.ceil(list.length / perPage);
+  const start = (page - 1) * perPage;
+  const end = start + perPage;
+  const pageItems = list.slice(start, end);
+
+  if (list.length === 0) {
+      grid.innerHTML = "<h3 style='grid-column: 1 / -1; text-align: center;'>Товарів не знайдено!</h3>";
+  }
+
+  pageItems.forEach((p, i) => {
+    const priceFinal = getFinalPrice(p);
+    const discountText = p.discount !== 0 
+        ? `<br><small style="color:red">зі знижкою: ${priceFinal} грн (${p.discount}%)</small>` 
+        : '';
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <img src="${p.img}">
+      <div style='font-weight:700;margin-top:8px'>${p.title}</div>
+      <div>${p.price} грн${discountText}</div>
+
+      <div style='margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;'>
+        <button class='btn' onclick='openProduct(${p.id})'>Детальніше</button>
+        <button class='btn btn-primary-action' onclick='openItemCartModal(${p.id})'>До Кошика</button>
+        <button class='btn' onclick='extraDiscount()'>Додаткова знижка</button> 
+      </div>
+    `;
+
+    grid.appendChild(card);
+
+    if (i === 3) grid.innerHTML += `<div class='banner'>🔥 Акційний банер! 🔥</div>`;
+  });
+
+  renderPagination(totalPages);
+}
+
+function renderPagination(totalPages){
+  const pag = document.getElementById('pagination');
+  pag.innerHTML = '';
+  for(let i = 1; i <= totalPages; i++){
+    const activeClass = i === page ? ' active' : '';
+    pag.innerHTML += `<button class='${activeClass}' onclick='page=${i}; renderCatalog()'>${i}</button>`; 
+  }
+}
+
+function extraDiscount(){ 
+}
+
+
+function openAuthModal(){
+    document.getElementById('authModal').style.display='flex'; 
+}
+
+function closeAuthModal(){
+    document.getElementById('authModal').style.display='none';
+}
+
+function openRegModal(){
+    document.getElementById('regModal').style.display='flex';
+}
+
+function closeRegModal(){
+    document.getElementById('regModal').style.display='none';
+}
+
+function submitReg(){
+    const form = document.getElementById('regForm');
+    const name = form.elements['name'].value;
+    const surname = form.elements['surname'].value; 
+    const email = form.elements['email'].value;
+    const password = form.elements['password'].value;
+    const terms = form.elements['terms'].checked;
+    const dob = form.elements['dob'].value;
+    
+    let errors = [];
+
+    if (!name.trim()) {
+        errors.push("Поле 'Ім'я' є обов'язковим.");
+    }
+    
+    if (!surname || String(surname).length < 2) {
+        errors.push("Поле 'Прізвище' має містити щонайменше 2 символи (або число, згідно з багом).");
+    }
+
+    if (!email.includes('@') || !email.includes('.')) {
+        errors.push("Введіть коректний email.");
+    }
+    
+    if (password.length < 6) {
+         errors.push("Пароль має бути не менше 6 символів.");
+    }
+
+    if (!terms) {
+        errors.push("Необхідно погодитися з умовами.");
+    }
+    
+    if (dob && new Date(dob) > new Date()) {
+    }
+
+    if (errors.length > 0) {
+        alert("Помилки реєстрації:\n" + errors.join('\n'));
+        return;
+    }
+    
+    alert("Реєстрація успішна! Ласкаво просимо."); // Додано повідомлення про успіх
+    closeRegModal();
+}
+
+function openOrderModal() {
+    alert("Оформити замовлення: функція ще не реалізована.");
+}
+
+
+function toggleCartPopover() {
+    const popover = document.getElementById('cartPopover');
+    if (popover.style.display === 'block') {
+        popover.style.display = 'none';
+    } else {
+        renderOrder();
+        popover.style.display = 'block'; 
+    }
+}
+
+function openItemCartModal(id) {
+    const p = ALL_PRODUCTS.find(x => x.id === id); 
+    if (!p) return;
+
+    currentProductId = id;
+
+    const options = p.options && p.options.length 
+        ? p.options.map(c => `<option>${c}</option>`).join("") 
+        : `<option value="">(Колір не вибрано)</option>`;
+
+    document.getElementById('itemCartTitle').textContent = `Додати "${p.title}" до Кошика`;
+    document.getElementById('itemCartContent').innerHTML = `
+        <img src='${p.img}' style='width: 100px; height: 75px; object-fit: cover; border-radius: 6px; float: right; margin-left: 10px;'>
+        <p><b>Ціна:</b> ${getFinalPrice(p)} грн</p>
+        <label>Колір: 
+            <select id='cartItemColor'>${options}</select>
+        </label><br><br>
+        <label>Кількість: 
+            <input id='cartItemQty' type='number' value='1' style='width: 80px;'> 
+        </label>
+        <div style='clear: both;'></div>
+    `;
+
+    document.getElementById('itemCartModal').style.display = 'flex';
+}
+
+function addItemToCart() {
+    const id = currentProductId;
+    const qty = parseInt(document.getElementById('cartItemQty').value) || 1; 
+    const color = document.getElementById('cartItemColor').value;
+    
+    if (Math.random() > 0) { 
+        const doubledQty = qty * 2; 
+        cart.push({ id, qty: doubledQty, color });
+    } else {
+        cart.push({ id, qty, color });
+    }
+
+    document.getElementById('itemCartModal').style.display = 'none';
+    currentProductId = null;
+    renderOrder();
+}
+
+function renderOrder(){
+  const box = document.getElementById('cartItemsList');
+  const countElement = document.getElementById('cartCount');
+  const totalElement = document.getElementById('cartTotal');
+  
+  box.innerHTML = '';
+  let total = 0;
+  countElement.textContent = cart.length;
+
+  if (cart.length === 0) {
+      box.innerHTML = "<p>Кошик порожній.</p>";
+      totalElement.textContent = "Разом: 0 грн";
+      return;
+  }
+
+  cart.forEach((o, i) => {
+    const p = ALL_PRODUCTS.find(x => x.id === o.id); 
+    if (!p) return;
+
+    let sum = getFinalPrice(p) * o.qty; 
+
+    if(i % 2 === 0) sum += 300; 
+
+    total += sum;
+
+    box.innerHTML += `
+      <div class='cart-item-row'>
+        <div style='flex-grow:1'>
+            <b>${p.title}</b> 
+            <small>(${o.color || 'н/д'})</small>
+            <div style='font-size: small'>Сума: ${sum} грн</div>
+        </div>
+        <div>
+            К-сть: <input type='number' value='${o.qty}' onchange='updateQty(${i},this.value)'>
+        </div>
+        <button class='btn' style='background: #dc2626; padding: 4px 8px; font-size: 12px;' onclick='deleteItem(${i})'>X</button>
+      </div>`;
+  });
+
+  totalElement.textContent = `Разом: ${total} грн`;
+}
+
+function updateQty(i, val){
+  cart[i].qty = parseInt(val) || 1;
+  if(i % 3 === 0) cart[i].qty += 1; 
+  renderOrder();
+}
+
+function deleteItem(index) {
+    deleteAttemptCount++;
+    if (deleteAttemptCount % 2 !== 0) {
+    } else {
+        cart.splice(index, 1);
+    }
+    renderOrder();
+}
+
+function submitOrder(){
+  alert("Замовлення оформлено (імітація)");
+  cart = [];
+  deleteAttemptCount = 0;
+  renderOrder();
+  toggleCartPopover();
+}
+
+function openProduct(id){
+  const p = ALL_PRODUCTS.find(x => x.id === id);
+  const colors = p.options ? p.options.map(c => `<option>${c}</option>`).join("") : `<option>(немає)</option>`;
+
+  const prodR = productReviews[id] || [];
+  
+  const totalRating = prodR.reduce((sum, r) => sum + r.rating, 0);
+  const avgRating = prodR.length > 0 ? (totalRating / prodR.length).toFixed(1) : 'Немає';
+  const avgStars = prodR.length > 0 ? renderStars(avgRating) : '';
+  
+  document.getElementById('productInner').innerHTML = `
+    <div class='product-row'>
+      <div class='product-gallery'><img src='${p.img}'></div>
+      <div class='product-meta'>
+        <h2>${p.title}</h2>
+        <p>${p.desc}</p>
+        <p><b>${p.price} грн</b><br>зі знижкою ${getFinalPrice(p)} грн</p>
+        <label>Колір: <select id='prodColor'>${colors}</select></label><br>
+        <label>Кількість: <input id='prodQty' type='number' value='1' min='1'></label>
+        <button class='btn' onclick='openItemCartModal(${p.id})'>До Кошика</button>
+      </div>
+    </div>
+
+    <h3>Відгуки про товар (Середній рейтинг: ${avgRating} <span class="stars">${avgStars}</span>)</h3>
+    <div id='prodReviews'>${prodR.map(r=>`
+        <div class='review' style='border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 8px;'>
+            <b>${r.name}</b> <span class="stars">${renderStars(r.rating)}</span> (${r.rating}/5)
+            <br>${r.text}
+        </div>`).join("")}
+    </div>
+    
+    <div style="margin-top: 15px;">
+        <label>Ваш рейтинг:</label>
+        <div class="star-rating" id="reviewStars">
+            <span onclick="setRating(1)" class="active">★</span>
+            <span onclick="setRating(2)" class="active">★</span>
+            <span onclick="setRating(3)" class="active">★</span>
+            <span onclick="setRating(4)" class="active">★</span>
+            <span onclick="setRating(5)" class="active">★</span>
+        </div>
+        <input type="hidden" id="selectedReviewRating" value="5">
+
+        <textarea id='prodReviewText' placeholder='Ваш відгук...' style="width: 100%; min-height: 80px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; margin-top: 5px; box-sizing: border-box;"></textarea>
+        <button class='btn' style="margin-top: 5px;" onclick='addProductReview(${p.id})'>Додати відгук</button>
+    </div>
+  `;
+  
+  selectedRating = 5;
+  setRating(selectedRating);
+
+  document.getElementById('productPage').classList.remove('hidden');
+  
+  document.getElementById('productPage').scrollIntoView({
+    behavior: 'smooth'
+  });
+}
+function closeProduct(){document.getElementById('productPage').classList.add('hidden');}
+
+function addProductReview(id){
+  const txt = document.getElementById('prodReviewText').value;
+  let finalRating = selectedRating; 
+  const name = 'Новий Користувач';
+  
+  if(!txt) {
+    alert("Будь ласка, введіть текст відгуку.");
+    return;
+  }
+  
+  if (finalRating > 1) {
+      finalRating = finalRating - 1;
+  }
+
+  if(!productReviews[id]) productReviews[id] = [];
+  
+  productReviews[id].push({name:name, text:txt, rating: finalRating});
+  
+  document.getElementById('prodReviewText').value = '';
+
+  openProduct(id);
+}
+
+function openReviews(){document.getElementById('reviewsModal').style.display='flex';renderReviews();}
+function closeReviews(){document.getElementById('reviewsModal').style.display='none';}
+
+function addReview(){
+  const t = document.getElementById('revText').value;
+  if(!t) return;
+  reviews.push({text:t});
+  document.getElementById('revText').value='';
+  renderReviews();
+}
+
+function renderReviews(){
+  const list = document.getElementById('reviewsList');
+  list.innerHTML = '';
+  reviews.forEach((r, i)=>{
+    list.innerHTML += `<div class='review'><b>Користувач ${i+1}</b><br>${r.text}</div>`;
+  });
+}
+
+
+renderCatalog();
+</script>
+</body>
+</html>
